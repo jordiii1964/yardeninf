@@ -52,12 +52,30 @@ async def create_task(headline: str, description: str):
 
 @app.get("/tasks/get_tasks")
 async def get_tasks():
+    tasks = []
+    all_tasks = primary_tasks.find()
+    for task in all_tasks:
+        tasks.append(task)
+    return {"tasks": tasks}
 
 
-# @app.delete("tasks/remove_task")
-# async def remove_task(headline: str, assigned_to: str):
+@app.delete("tasks/remove_task")
+async def remove_task(task_id: str):
+    result_primary = primary_tasks.delete_one({"task_id": task_id})
+
+    # Delete the task from the secondary database
+    result_secondary = secondary_tasks.delete_one({"task_id": task_id})
+
+    # Check that the task was successfully deleted from both databases
+    if result_primary.deleted_count and result_secondary.deleted_count:
+        return {"message": "Task deleted successfully"}
+    else:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+
 def main():
     pass
+
 
 if __name__ == '__main__':
     main()
