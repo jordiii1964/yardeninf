@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Task</title>
+</head>
+<body>
+    <h1>Create New Task</h1>
+    <form>
+        <label for="headline">Headline:</label>
+        <input type="text" id="headline" name="headline"><br><br>
+        <label for="description">Description:</label>
+        <textarea id="description" name="description"></textarea><br><br>
+        <button type="button" onclick="createTask()">Create Task</button>
+    </form>
+    <script>
+        function createTask() {
+            // Get the input values from the form
+            const headline = document.getElementById("headline").value;
+            const description = document.getElementById("description").value;
+
+            // Send a POST request to the backend API with the form data
+            fetch("/tasks/new_task", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "headline": headline,
+                    "description": description
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Task created successfully!");
+                } else {
+                    alert("Failed to create task.");
+                }
+            })
+            .catch(error => {
+                alert("An error occurred while creating the task.");
+                console.error(error);
+            });
+        }
+    </script>
+</body>
+</html>
