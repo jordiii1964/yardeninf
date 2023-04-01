@@ -1,19 +1,11 @@
 from fastapi import FastAPI, HTTPException, Form, Query
 import argparse
 import uvicorn
-import DB_Connection
-import Task
+from db_connection import DB_Connection
+from task import Task
 
 app = FastAPI()
 
-parser = argparse.ArgumentParser(description='Start the service on two servers.')
-parser.add_argument('--primary', required=True, help='IP address of the primary DB')
-parser.add_argument('--secondary', required=True, help='IP address of the secondary DB')
-args = parser.parse_args()
-primary = args.primary
-secondary = args.secondary
-primary_db = DB_Connection(primary)
-secondary_db = DB_Connection(secondary)
 
 @app.post("/tasks/create_task")
 async def create_task(headline: str = Form(...), description: str = Form(...)):
@@ -27,15 +19,9 @@ async def create_task(headline: str = Form(...), description: str = Form(...)):
 
     # Check that the task was successfully added to both databases
     if result_primary.inserted_id and result_secondary.inserted_id:
-        primary_db.close_db_session()
-        secondary_db.close_db_session()
         return {"message": "Task added successfully"}
     else:
-        primary_db.close_db_session()
-        secondary_db.close_db_session()
         raise HTTPException(status_code=500, detail="Failed to add task")
-
-
 
 
 @app.get("/tasks/get_all_tasks")
@@ -46,7 +32,6 @@ async def get_all_tasks():
         task_dict = dict(task)
         task_dict['_id'] = str(task_dict['_id'])  # convert ObjectId to string
         tasks.append(task_dict)
-    primary_db.close_db_session()
     return {"tasks": tasks}
 
 
@@ -55,7 +40,6 @@ async def search_task(task_headline: str = Query(...)):
     # Search for tasks with the given name in both databases
     tasks = primary_db.tasks.find({"headline": task_headline})
     if not tasks:
-        primary_db.close_db_session()
         raise HTTPException(status_code=404, detail="No tasks found with that headline")
     tasks = list(tasks)
     if len(tasks) > 0:
@@ -67,11 +51,9 @@ async def search_task(task_headline: str = Query(...)):
             task_info = {"task_id": task_id, "description": description,
                          "creation_time": creation_time}
             tasks_list.append(task_info)
-        primary_db.close_db_session()
         return {"message": f"Here are the tasks with the headline '{task_headline}'", "tasks": tasks_list}
 
     else:
-        primary_db.close_db_session()
         return {"message": "No tasks found with the headline :("}
 
 
@@ -84,14 +66,18 @@ async def remove_task(task_id: str):
 
     # Check that the task was successfully deleted from both databases
     if result_primary.deleted_count and result_secondary.deleted_count:
-        primary_db.close_db_session()
-        secondary_db.close_db_session()
         return {"message": "Task deleted successfully"}
     else:
-        primary_db.close_db_session()
-        secondary_db.close_db_session()
         raise HTTPException(status_code=404, detail="Task not found")
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Start the service on two servers.')
+    parser.add_argument('--primary', required=True, help='IP address of the primary DB')
+    parser.add_argument('--secondary', required=True, help='IP address of the secondary DB')
+    args = parser.parse_args()
+    primary = args.primary
+    secondary = args.secondary
+    primary_db = DB_Connection(primary)
+    secondary_db = DB_Connection(secondary)
     uvicorn.run(app, host='0.0.0.0', port=8000)
