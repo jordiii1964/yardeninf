@@ -1,20 +1,26 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Form
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+
 import uuid
 from datetime import datetime
 from pymongo import MongoClient
 import argparse
 
-parser = argparse.ArgumentParser(description='Start the service on two servers.')
-parser.add_argument('primary', help='IP address of the primary DB')
-parser.add_argument('secondary', help='IP address of the secondary DB')
-args = parser.parse_args()
-primary = args.primary
-secondary = args.secondary
+# parser = argparse.ArgumentParser(description='Start the service on two servers.')
+# parser.add_argument('primary', help='IP address of the primary DB')
+# parser.add_argument('secondary', help='IP address of the secondary DB')
+# args = parser.parse_args()
+# primary = args.primary
+# secondary = args.secondary
+primary = '192.168.58.128'
+secondary = '192.168.58.128'
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 class Task():
-    def __init__(self, description: str, headline: str):
+    def __init__(self, headline: str, description: str):
         self.headline = headline
         self.description = description
         self.creation_time = datetime.now()
@@ -43,7 +49,9 @@ secondary_db = DBConnection(secondary)
 
 # need to change to post at the end
 @app.post("/tasks/create_task")
-async def create_task(headline: str, description: str):
+async def create_task(headline: str = Form(...), description: str = Form(...)):
+    print(headline)
+    print(description)
     new_task = Task(headline, description)
 
     # Insert the new task into the primary database
@@ -52,11 +60,26 @@ async def create_task(headline: str, description: str):
     # Insert the new task into the secondary database
     result_secondary = secondary_db.tasks.insert_one(new_task.create_dict())
 
+
     # Check that the task was successfully added to both databases
     if result_primary.inserted_id and result_secondary.inserted_id:
         return {"message": "Task added successfully"}
     else:
         raise HTTPException(status_code=500, detail="Failed to add task")
+
+
+@app.get("/tasks/create_task")
+async def get_create_task():
+    with open('static/create_task.html') as f:
+        html = f.read()
+    return HTMLResponse(content=html, status_code=200)
+
+
+@app.get('/')
+async def get_index():
+    with open('static/index.html') as f:
+        html = f.read()
+    return HTMLResponse(content=html, status_code=200)
 
 
 @app.get("/tasks/get_tasks")
