@@ -35,6 +35,15 @@ class Task():
         }
         return data
 
+    def __dict__(self):
+        data = {
+            "headline": self.headline,
+            "description": self.description,
+            "creation_time": self.creation_time.isoformat(),
+            "task_id": self.task_id
+        }
+        return data
+
 
 class DBConnection():
     def __init__(self, client: str):
@@ -59,7 +68,6 @@ async def create_task(headline: str = Form(...), description: str = Form(...)):
 
     # Insert the new task into the secondary database
     result_secondary = secondary_db.tasks.insert_one(new_task.create_dict())
-
 
     # Check that the task was successfully added to both databases
     if result_primary.inserted_id and result_secondary.inserted_id:
@@ -87,7 +95,9 @@ async def get_tasks():
     tasks = []
     all_tasks = primary_db.tasks.find()
     for task in all_tasks:
-        tasks.append(task)
+        task_dict = dict(task)
+        task_dict['_id'] = str(task_dict['_id'])  # convert ObjectId to string
+        tasks.append(task_dict)
     return {"tasks": tasks}
 
 

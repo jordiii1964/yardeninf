@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Tasks</title>
+</head>
+<body>
+    <h1>Tasks</h1>
+    <ul>
+        {% for task in tasks %}
+            <li>{{ task.headline }} - {{ task.description }}
+                <form action="/tasks/delete_task" method="post">
+                    <input type="hidden" name="task_id" value="{{ task.task_id }}">
+                    <input type="submit" value="Delete">
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+    <form action="/tasks/create_task" method="post">
+        <label for="headline">Headline:</label><br>
+        <input type="text" id="headline" name="headline"><br>
+        <label for="description">Description:</label><br>
+        <input type="text" id="description" name="description"><br><br>
+        <input type="submit" value="Create task">
+    </form>
+</body>
+</html>
