@@ -1,40 +1,10 @@
 from fastapi import FastAPI, HTTPException, Form, Query
-from fastapi.staticfiles import StaticFiles
-import uuid
-from datetime import datetime
-from pymongo import MongoClient
 import argparse
 import uvicorn
+import DB_Connection
+import Task
 
 app = FastAPI()
-
-
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-class Task():
-    def __init__(self, headline: str, description: str):
-        self.headline = headline
-        self.description = description
-        self.creation_time = datetime.now()
-        self.task_id = str(uuid.uuid4())
-
-    def create_dict(self):
-        data = {
-            "headline": self.headline,
-            "description": self.description,
-            "creation_time": self.creation_time.isoformat(),
-            "task_id": self.task_id
-        }
-        return data
-
-
-class DBConnection():
-    def __init__(self, client: str):
-        self.client = MongoClient(f'mongodb://{client}:27017/')
-        self.db = self.client['database']
-        self.tasks = self.db['tasks']
-
 
 parser = argparse.ArgumentParser(description='Start the service on two servers.')
 parser.add_argument('--primary', required=True, help='IP address of the primary DB')
@@ -42,11 +12,10 @@ parser.add_argument('--secondary', required=True, help='IP address of the second
 args = parser.parse_args()
 primary = args.primary
 secondary = args.secondary
-primary_db = DBConnection(primary)
-secondary_db = DBConnection(secondary)
+primary_db = DB_Connection(primary)
+secondary_db = DB_Connection(secondary)
 
 
-# need to change to post at the end
 @app.post("/tasks/create_task")
 async def create_task(headline: str = Form(...), description: str = Form(...)):
     new_task = Task(headline, description)
