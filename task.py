@@ -19,7 +19,7 @@ class Task():
 
     def create_dict(self):
         """
-               Returns a dictionary of the Task object.
+               Returns a dictionary of the Task object. The dict is made due to the fact MongoDB needs to get values in a dict format.
 
         """
         data = {
