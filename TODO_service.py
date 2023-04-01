@@ -38,13 +38,16 @@ async def get_all_tasks():
     """
     This function gets all the tasks from the primary database.
     :return: dict
-        A dictionary with all of the tasks.
+        A dictionary with all the user relevant tasks details.
     """
     tasks = []
     all_tasks = primary_db.tasks.find()
     for task in all_tasks:
-        task_dict = dict(task)
-        task_dict['_id'] = str(task_dict['_id'])  # convert ObjectId to string
+        task_dict = {
+            "headline": task["headline"],
+            "description": task["description"],
+            "creation_time": task["creation_time"],
+        }
         tasks.append(task_dict)
     return {"tasks": tasks}
 
