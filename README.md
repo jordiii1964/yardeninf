@@ -11,7 +11,7 @@ Once your done your service is up and ready to go.
 
 
 ## Technical choices
-DB - I spent a lot of time thinking about which DB would be the right choice for my project. I needed a database that was fast and efficient, and initially I chose Redis. However, I soon realized that it would make the table connections very complicated, and it's an in-memory database, which meant that I couldn't ensure consistency of my data. After some research, I found that MongoDB is also very fast and is a NoSQL database, which is much easier to use. I also looked into MongoDB's built-in replication feature to make the connection between the two databases more effective. However, this feature acts like a master and slave, whereas I needed a master and master setup, so I didn't find it very attractive for my project.
+DB - I spent a lot of time thinking about which DB would be the right choice for my project. I needed a database that was fast and efficient, and initially I chose Redis. However, I soon realized that it would make the table connections very complicated, and it's an in-memory database, which meant that I couldn't ensure consistency of my data. After some research, I found that MongoDB is also very fast and is a NoSQL database, which is much easier to use. I also looked into MongoDB's built-in replication feature to make the connection between the two databases more effective. However, this feature acts like a master and slave, and I needed a master and master setup, so I didn't find it very attractive for my project. I know there must be a better way to connect between th DB but i didnt found it yet.
 
 ## my design
 i decided to create my tasks with the parameters:
@@ -40,6 +40,7 @@ Frontend - The FastApi docs is very comftorble, but I experienced some limitatio
 - Adding user name to every task
 - Filtering tasks by a certain user
 - Task status (completed/in progress/canceled...)
+- change the way both DB's sync.
 
 
 
